@@ -34,16 +34,22 @@ func GetStats() (map[string]any, error) {
 		res = append(res, count)
 	}
 
-	// сообщений нет
-	if len(res) < 2 {
+	if len(res) < 1 {
+		// сообщений нет
 		return map[string]any{
 			"Обработано сообщений": 0,
 			"Всего сообщений": 0,
 		}, nil
+	} else if len(res) == 1 {
+		// все сообщения обработаны
+		return map[string]any{
+			"Обработано сообщений": res[0].Cpt,
+			"Всего сообщений": res[0].Cpt,
+		}, nil
+	} else {
+		return map[string]any{
+			"Обработано сообщений": res[0].Cpt,
+			"Всего сообщений": res[1].Cpt,
+		}, nil
 	}
-
-	return map[string]any{
-		"Обработано сообщений": res[0].Cpt,
-		"Всего сообщений": res[1].Cpt,
-	}, nil
 }
