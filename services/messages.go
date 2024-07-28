@@ -13,7 +13,7 @@ import (
 )
 
 
-func SaveMessage(data *validators.MessageSaveRequest, ctx context.Context) (int, error) {
+func SaveMessage(data *validators.MessageSaveRequest, ctx context.Context) (int64, error) {
 	w := &kafka.Writer{
 		Addr:     kafka.TCP("localhost:9092", "localhost:9093", "localhost:9094"),
 		Topic:   "messages",
@@ -33,12 +33,12 @@ func SaveMessage(data *validators.MessageSaveRequest, ctx context.Context) (int,
 		// в случае ошибки записи сообщение попадает в БД необработанным
 		fmt.Println("failed to write messages:", err)
 		query = `
-		INSERT INTO Messages (content) VALUES ($1);
+		INSERT INTO Messages (content) VALUES ($1) RETURNING id;
 		`
 	} else {
 		// в случае успеха processed = true
 		query = `
-		INSERT INTO Messages (content, processed) VALUES ($1, true);
+		INSERT INTO Messages (content, processed) VALUES ($1, true) RETURNING id;
 		`
 	}
 
@@ -46,13 +46,14 @@ func SaveMessage(data *validators.MessageSaveRequest, ctx context.Context) (int,
 		fmt.Println("failed to close writer:", err)
 	}
 
-	_, err = db.DBCon.Exec(query, data.Content.String)
+	var retId int64
+	err = db.DBCon.QueryRowx(query, data.Content.String).Scan(&retId)
 	if err != nil {
 		fmt.Println(err)
 		return 1, err
 	}
-
-	return 0, nil
+	
+	return retId, nil
 }
 
 func GetMessageByID(id int) (*db.Messages, error) {

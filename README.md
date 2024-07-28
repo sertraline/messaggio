@@ -48,6 +48,8 @@ curl -X "POST" http://localhost:3333/messages -d '{"content": "123"}'
 
 Для ключей в kafka я использую генератор UUID.
 
+Метод возвращает int64 который соответствует ID новой записи внесенной в базу данных.
+
 2. Получить сообщение из БД по ID:  
 ```bash
 curl http://localhost:3333/messages/1
